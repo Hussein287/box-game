@@ -1,24 +1,25 @@
 
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ar">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Box Game</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>لعبة الصناديق</title>
   <style>
     body {
-      background-color: #ffdddd;
-      font-family: Arial, sans-serif;
       margin: 0;
-      padding: 0;
+      font-family: 'Arial', sans-serif;
       text-align: center;
-    }
-    .header {
-      background-color: #aa0000;
+      background-color: #111;
       color: white;
-      padding: 1em;
     }
-    .boxes {
+    .start-screen, .game-screen {
+      display: none;
+    }
+    .visible {
+      display: block;
+    }
+    .box-container {
       display: flex;
       flex-wrap: wrap;
       justify-content: center;
@@ -28,86 +29,107 @@
       width: 100px;
       height: 100px;
       background-color: black;
+      border: 2px solid #FFD700;
       margin: 10px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
       position: relative;
-      border: 2px solid yellow;
+      cursor: pointer;
+      background-image: url('https://cdn-icons-png.flaticon.com/512/3064/3064197.png');
+      background-size: 60%;
+      background-repeat: no-repeat;
+      background-position: center;
     }
-    .box img.lock {
-      width: 40px;
+    .text-inside {
+      position: absolute;
+      top: 35%;
+      width: 100%;
+      font-weight: bold;
+      font-size: 20px;
     }
-    .box.revealed {
-      background-color: white;
-      border: 2px solid green;
-    }
-    .box img.reveal {
-      width: 90px;
-      display: none;
-    }
-    .revealed img.reveal {
-      display: block;
-    }
-    .revealed img.lock {
-      display: none;
-    }
-    .revealed + .result {
-      margin-top: -10px;
-    }
-    .result {
+    .image-below {
       margin-top: 20px;
+    }
+    .scoreboard {
+      font-size: 24px;
+      margin-top: 10px;
     }
   </style>
 </head>
 <body>
-  <div class="header">
-    <h1>🔴 Red Team Playing</h1>
+  <div class="start-screen visible" id="start-screen">
+    <h1>لعبة الصناديق</h1>
+    <input type="text" placeholder="اسم الفريق الأحمر" id="red-team">
+    <input type="text" placeholder="اسم الفريق الأخضر" id="green-team">
+    <br><br>
+    <button onclick="startGame()">ابدأ اللعب</button>
   </div>
-  <div class="boxes" id="boxes">
+
+  <div class="game-screen" id="game-screen">
+    <div id="score" class="scoreboard">0 / 0</div>
+    <div class="box-container" id="boxes"></div>
+    <div class="image-below" id="image-area"></div>
   </div>
-  <div class="result" id="result"></div>
 
   <script>
-    const imageUrls = [
-      "https://i.ibb.co/TMW5d40/C1.jpg",
-      "https://i.ibb.co/gZ0V6CL/C2.jpg",
-      "https://i.ibb.co/3m4JdpZ/C3.jpg",
-      "https://i.ibb.co/1t4bxx0n/C4.jpg",
-      "https://i.ibb.co/ycbVCKh/C5.jpg",
-      "https://i.ibb.co/nN5DdmG/C6.jpg",
-      "https://i.ibb.co/Qgs7T4c/C7.jpg",
-      "https://i.ibb.co/q3c4Jx9/C8.jpg",
-      "https://i.ibb.co/NntB7Cv/C9.jpg",
-      "https://i.ibb.co/rKVjngS/C10.jpg"
+    let redScore = 0, greenScore = 0;
+    let currentTeam = 'red';
+    let redName = '', greenName = '';
+    let images = [
+      "https://i.ibb.co/TMW5d40/1.jpg",
+      "https://i.ibb.co/gZ0V6CL/2.jpg",
+      "https://i.ibb.co/3m4JdpZ/3.jpg",
+      "https://i.ibb.co/1t4bxx0n/4.jpg",
+      "https://i.ibb.co/ycbVCKh8/5.jpg",
+      "https://i.ibb.co/nN5DdmG/6.jpg",
+      "https://i.ibb.co/Qgs7T4c/7.jpg",
+      "https://i.ibb.co/q3c4Jx9/8.jpg",
+      "https://i.ibb.co/NntB7Cv/9.jpg",
+      "https://i.ibb.co/rKVjngS/10.jpg"
     ];
 
-    const shuffled = imageUrls.sort(() => 0.5 - Math.random());
-    const boxes = document.getElementById("boxes");
+    function startGame() {
+      redName = document.getElementById('red-team').value || "الأحمر";
+      greenName = document.getElementById('green-team').value || "الأخضر";
+      document.getElementById('start-screen').classList.remove('visible');
+      document.getElementById('game-screen').classList.add('visible');
+      renderBoxes();
+      updateScore();
+    }
 
-    shuffled.forEach((imgUrl, index) => {
-      const box = document.createElement("div");
-      box.classList.add("box");
+    function renderBoxes() {
+      const container = document.getElementById('boxes');
+      for (let i = 0; i < 10; i++) {
+        const box = document.createElement('div');
+        box.classList.add('box');
+        box.onclick = () => openBox(box);
+        container.appendChild(box);
+      }
+    }
 
-      const lock = document.createElement("img");
-      lock.src = "https://cdn-icons-png.flaticon.com/512/61/61457.png";
-      lock.classList.add("lock");
-      box.appendChild(lock);
+    function openBox(box) {
+      if (box.classList.contains('opened')) return;
+      box.classList.add('opened');
+      const truth = Math.random() < 0.5;
+      const text = document.createElement('div');
+      text.className = "text-inside";
+      text.textContent = truth ? "حقيقة" : "كذب";
+      text.style.color = truth ? "green" : "red";
+      box.appendChild(text);
+      showRandomImage();
+    }
 
-      const reveal = document.createElement("img");
-      reveal.src = imgUrl;
-      reveal.classList.add("reveal");
-      box.appendChild(reveal);
+    function showRandomImage() {
+      const imgDiv = document.getElementById('image-area');
+      const img = document.createElement('img');
+      img.src = images[Math.floor(Math.random() * images.length)];
+      img.style.maxWidth = "300px";
+      img.style.marginTop = "10px";
+      imgDiv.innerHTML = "";
+      imgDiv.appendChild(img);
+    }
 
-      box.addEventListener("click", () => {
-        if (!box.classList.contains("revealed")) {
-          box.classList.add("revealed");
-        }
-      });
-
-      boxes.appendChild(box);
-    });
+    function updateScore() {
+      document.getElementById('score').textContent = `${redScore} / ${greenScore}`;
+    }
   </script>
 </body>
 </html>
