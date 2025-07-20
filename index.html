@@ -160,4 +160,72 @@
 
       // تحديد حقيقة أو كذب عشوائياً
       const isTruth = Math.random() < 0.5;
-      const textDiv = document.creat
+      const textDiv = document.createElement("div");
+      textDiv.className = "text-inside";
+      textDiv.textContent = isTruth ? "حقيقة" : "كذب";
+      textDiv.style.color = isTruth ? "green" : "red";
+      box.appendChild(textDiv);
+
+      // عرض الصورة تحت الصندوق
+      const imgArea = document.getElementById("image-area");
+      imgArea.innerHTML = "";
+      const img = document.createElement("img");
+      img.src = assignedImages[box.dataset.index];
+      imgArea.appendChild(img);
+
+      openedBoxesCount++;
+
+      // تغيير لون الخلفية حسب الدور
+      currentTurn = currentTurn === "red" ? "green" : "red";
+      document.body.style.backgroundColor = currentTurn === "red" ? "#ffcccc" : "#ccffcc";
+
+      // لو فتح كل الصناديق نعلن الفائز
+      if (openedBoxesCount === boxesCount) {
+        announceWinner();
+      }
+    }
+
+    document.getElementById("red-score-btn").onclick = () => {
+      redScore++;
+      updateScores();
+      checkWin();
+    };
+    document.getElementById("green-score-btn").onclick = () => {
+      greenScore++;
+      updateScores();
+      checkWin();
+    };
+
+    function updateScores() {
+      document.getElementById("red-score").textContent = redScore;
+      document.getElementById("green-score").textContent = greenScore;
+    }
+
+    function checkWin() {
+      if (redScore >= 6 || greenScore >= 6) {
+        announceWinner();
+      }
+    }
+
+    function announceWinner() {
+      let winnerName = "";
+      if (redScore > greenScore) winnerName = redName;
+      else if (greenScore > redScore) winnerName = greenName;
+      else winnerName = "تعادل";
+
+      const winnerMsg = document.getElementById("winner-message");
+      winnerMsg.textContent = winnerName === "تعادل" ? "انتهت اللعبة بالتعادل!" : `فاز الفريق: ${winnerName}`;
+    }
+
+    // خلط مصفوفة الصور
+    function shuffleArray(array) {
+      let arr = array.slice();
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+      return arr;
+    }
+  </script>
+</body>
+</html>
