@@ -1,9 +1,8 @@
-
 <!DOCTYPE html>
 <html lang="ar">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>لعبة الصناديق</title>
   <style>
     body {
@@ -12,6 +11,7 @@
       text-align: center;
       background-color: #111;
       color: white;
+      transition: background-color 0.5s ease;
     }
     .start-screen, .game-screen {
       display: none;
@@ -29,7 +29,7 @@
       width: 100px;
       height: 100px;
       background-color: black;
-      border: 2px solid #FFD700;
+      border: 3px solid #FFD700;
       margin: 10px;
       position: relative;
       cursor: pointer;
@@ -37,6 +37,11 @@
       background-size: 60%;
       background-repeat: no-repeat;
       background-position: center;
+      transition: background-color 0.3s ease;
+    }
+    .box.opened {
+      background-image: none;
+      cursor: default;
     }
     .text-inside {
       position: absolute;
@@ -44,36 +49,67 @@
       width: 100%;
       font-weight: bold;
       font-size: 20px;
+      user-select: none;
+    }
+    #scoreboard {
+      font-size: 24px;
+      margin-top: 15px;
+      user-select: none;
+    }
+    #scoreboard span {
+      cursor: pointer;
+      margin: 0 10px;
+      font-weight: bold;
+      user-select: none;
     }
     .image-below {
       margin-top: 20px;
     }
-    .scoreboard {
-      font-size: 24px;
-      margin-top: 10px;
+    .image-below img {
+      max-width: 350px;
+      max-height: 250px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.5);
+    }
+    #winner-message {
+      font-size: 28px;
+      font-weight: bold;
+      margin-top: 30px;
+      color: yellow;
+      text-shadow: 0 0 5px #000;
     }
   </style>
 </head>
 <body>
   <div class="start-screen visible" id="start-screen">
     <h1>لعبة الصناديق</h1>
-    <input type="text" placeholder="اسم الفريق الأحمر" id="red-team">
-    <input type="text" placeholder="اسم الفريق الأخضر" id="green-team">
-    <br><br>
+    <input type="text" id="red-team" placeholder="اسم الفريق الأحمر" />
+    <input type="text" id="green-team" placeholder="اسم الفريق الأخضر" />
+    <br /><br />
     <button onclick="startGame()">ابدأ اللعب</button>
   </div>
 
   <div class="game-screen" id="game-screen">
-    <div id="score" class="scoreboard">0 / 0</div>
+    <div id="scoreboard">
+      + <span id="green-score-btn">+</span>
+      <span id="green-name">الأخضر</span> <span id="green-score">0</span> /
+      <span id="red-score">0</span> <span id="red-name">الأحمر</span>
+      <span id="red-score-btn">+</span> +
+    </div>
     <div class="box-container" id="boxes"></div>
     <div class="image-below" id="image-area"></div>
+    <div id="winner-message"></div>
   </div>
 
   <script>
-    let redScore = 0, greenScore = 0;
-    let currentTeam = 'red';
-    let redName = '', greenName = '';
-    let images = [
+    const boxesCount = 10;
+    let redScore = 0,
+      greenScore = 0;
+    let redName = "الأحمر",
+      greenName = "الأخضر";
+    let currentTurn = "red"; // يبدأ بالأحمر
+    let openedBoxesCount = 0;
+    const images = [
       "https://i.ibb.co/TMW5d40/1.jpg",
       "https://i.ibb.co/gZ0V6CL/2.jpg",
       "https://i.ibb.co/3m4JdpZ/3.jpg",
@@ -83,53 +119,45 @@
       "https://i.ibb.co/Qgs7T4c/7.jpg",
       "https://i.ibb.co/q3c4Jx9/8.jpg",
       "https://i.ibb.co/NntB7Cv/9.jpg",
-      "https://i.ibb.co/rKVjngS/10.jpg"
+      "https://i.ibb.co/rKVjngS/10.jpg",
     ];
 
+    let assignedImages = [];
+
     function startGame() {
-      redName = document.getElementById('red-team').value || "الأحمر";
-      greenName = document.getElementById('green-team').value || "الأخضر";
-      document.getElementById('start-screen').classList.remove('visible');
-      document.getElementById('game-screen').classList.add('visible');
+      redName = document.getElementById("red-team").value.trim() || "الأحمر";
+      greenName = document.getElementById("green-team").value.trim() || "الأخضر";
+      document.getElementById("red-name").textContent = redName;
+      document.getElementById("green-name").textContent = greenName;
+      document.getElementById("start-screen").classList.remove("visible");
+      document.getElementById("game-screen").classList.add("visible");
+      document.body.style.backgroundColor = currentTurn === "red" ? "#ffcccc" : "#ccffcc";
       renderBoxes();
-      updateScore();
+      updateScores();
     }
 
     function renderBoxes() {
-      const container = document.getElementById('boxes');
-      for (let i = 0; i < 10; i++) {
-        const box = document.createElement('div');
-        box.classList.add('box');
+      const container = document.getElementById("boxes");
+      container.innerHTML = "";
+      assignedImages = shuffleArray(images).slice(0, boxesCount);
+      for (let i = 0; i < boxesCount; i++) {
+        const box = document.createElement("div");
+        box.classList.add("box");
+        box.dataset.index = i;
+        box.dataset.opened = "false";
         box.onclick = () => openBox(box);
         container.appendChild(box);
       }
     }
 
     function openBox(box) {
-      if (box.classList.contains('opened')) return;
-      box.classList.add('opened');
-      const truth = Math.random() < 0.5;
-      const text = document.createElement('div');
-      text.className = "text-inside";
-      text.textContent = truth ? "حقيقة" : "كذب";
-      text.style.color = truth ? "green" : "red";
-      box.appendChild(text);
-      showRandomImage();
-    }
+      if (box.dataset.opened === "true") return;
+      box.dataset.opened = "true";
+      box.classList.add("opened");
 
-    function showRandomImage() {
-      const imgDiv = document.getElementById('image-area');
-      const img = document.createElement('img');
-      img.src = images[Math.floor(Math.random() * images.length)];
-      img.style.maxWidth = "300px";
-      img.style.marginTop = "10px";
-      imgDiv.innerHTML = "";
-      imgDiv.appendChild(img);
-    }
+      // إظهار القفل يختفي عند الفتح
+      box.style.backgroundImage = "none";
 
-    function updateScore() {
-      document.getElementById('score').textContent = `${redScore} / ${greenScore}`;
-    }
-  </script>
-</body>
-</html>
+      // تحديد حقيقة أو كذب عشوائياً
+      const isTruth = Math.random() < 0.5;
+      const textDiv = document.creat
