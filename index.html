@@ -1,0 +1,113 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Box Game</title>
+  <style>
+    body {
+      background-color: #ffdddd;
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      text-align: center;
+    }
+    .header {
+      background-color: #aa0000;
+      color: white;
+      padding: 1em;
+    }
+    .boxes {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-top: 20px;
+    }
+    .box {
+      width: 100px;
+      height: 100px;
+      background-color: black;
+      margin: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      position: relative;
+      border: 2px solid yellow;
+    }
+    .box img.lock {
+      width: 40px;
+    }
+    .box.revealed {
+      background-color: white;
+      border: 2px solid green;
+    }
+    .box img.reveal {
+      width: 90px;
+      display: none;
+    }
+    .revealed img.reveal {
+      display: block;
+    }
+    .revealed img.lock {
+      display: none;
+    }
+    .revealed + .result {
+      margin-top: -10px;
+    }
+    .result {
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>🔴 Red Team Playing</h1>
+  </div>
+  <div class="boxes" id="boxes">
+  </div>
+  <div class="result" id="result"></div>
+
+  <script>
+    const imageUrls = [
+      "https://i.ibb.co/TMW5d40/C1.jpg",
+      "https://i.ibb.co/gZ0V6CL/C2.jpg",
+      "https://i.ibb.co/3m4JdpZ/C3.jpg",
+      "https://i.ibb.co/1t4bxx0n/C4.jpg",
+      "https://i.ibb.co/ycbVCKh/C5.jpg",
+      "https://i.ibb.co/nN5DdmG/C6.jpg",
+      "https://i.ibb.co/Qgs7T4c/C7.jpg",
+      "https://i.ibb.co/q3c4Jx9/C8.jpg",
+      "https://i.ibb.co/NntB7Cv/C9.jpg",
+      "https://i.ibb.co/rKVjngS/C10.jpg"
+    ];
+
+    const shuffled = imageUrls.sort(() => 0.5 - Math.random());
+    const boxes = document.getElementById("boxes");
+
+    shuffled.forEach((imgUrl, index) => {
+      const box = document.createElement("div");
+      box.classList.add("box");
+
+      const lock = document.createElement("img");
+      lock.src = "https://cdn-icons-png.flaticon.com/512/61/61457.png";
+      lock.classList.add("lock");
+      box.appendChild(lock);
+
+      const reveal = document.createElement("img");
+      reveal.src = imgUrl;
+      reveal.classList.add("reveal");
+      box.appendChild(reveal);
+
+      box.addEventListener("click", () => {
+        if (!box.classList.contains("revealed")) {
+          box.classList.add("revealed");
+        }
+      });
+
+      boxes.appendChild(box);
+    });
+  </script>
+</body>
+</html>
